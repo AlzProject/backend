@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+}
+
+// =========================
+// ENUMS
+// =========================
+enum QUESTION_TYPE {
+  scmcq
+  mcmcq
+  numerical
+  text
+  match
+  interactive
+}
+
+enum MEDIA_FILE {
+  image
+  video
+  audio
+  interactive
+}
+
+enum USER_TYPE {
+  participant
+  tester
+  admin
+}
+
+// =========================
+// MODELS
+// =========================
+
+// USERS
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String
+  type      USER_TYPE @default(participant)
+  createdAt DateTime  @default(now())
+
+  tests     Test[]    @relation("UserTests")
+  attempts  Attempt[]
+}
+
+// TESTS
+model Test {
+  id                  Int       @id @default(autoincrement())
+  title               String
+  description         String?
+  createdBy           Int?
+  createdAt           DateTime  @default(now())
+  isActive            Boolean   @default(true)
+  duration            String?   // Prisma has no INTERVAL type, store as ISO8601 duration string
+  allowNegativeMarking Boolean   @default(false)
+  allowPartialMarking  Boolean   @default(false)
+
+  createdByUser       User?     @relation("UserTests", fields: [createdBy], references: [id])
+  sections            Section[]
+  attempts            Attempt[]
+}
+
+// SECTIONS
+model Section {
+  id          Int       @id @default(autoincrement())
+  testId      Int
+  title       String
+  description String?
+  orderIndex  Int
+  duration    String?   
+  createdAt   DateTime  @default(now())
+
+  test        Test      @relation(fields: [testId], references: [id])
+  questions   Question[]
+}
+
+// QUESTIONS
+model Question {
+  id             Int            @id @default(autoincrement())
+  sectionId      Int
+  text           String
+  type           QUESTION_TYPE
+  ans            String?
+  maxScore       Decimal        @default(1.0)
+  negativeScore  Decimal        @default(0.0)
+  partialMarking Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+
+  section        Section        @relation(fields: [sectionId], references: [id])
+  options        Option[]
+  mediaLinks     QuestionMedia[]
+  responses      Response[]
+}
+
+// OPTIONS
+model Option {
+  id          Int           @id @default(autoincrement())
+  questionId  Int
+  text        String?
+  weight      Decimal       @default(0.0)
+  isCorrect   Boolean       @default(false)
+
+  question    Question      @relation(fields: [questionId], references: [id])
+  mediaLinks  OptionMedia[]
+}
+
+// MEDIA
+model Media {
+  id       Int           @id @default(autoincrement())
+  filename String
+  label    String?
+  type     MEDIA_FILE
+
+  questionLinks QuestionMedia[]
+  optionLinks   OptionMedia[]
+}
+
+// QUESTION_MEDIA (many-to-many)
+model QuestionMedia {
+  questionId Int
+  mediaId    Int
+
+  question   Question @relation(fields: [questionId], references: [id])
+  media      Media    @relation(fields: [mediaId], references: [id])
+
+  @@id([questionId, mediaId])
+}
+
+// OPTION_MEDIA (many-to-many)
+model OptionMedia {
+  optionId Int
+  mediaId  Int
+
+  option   Option @relation(fields: [optionId], references: [id])
+  media    Media  @relation(fields: [mediaId], references: [id])
+
+  @@id([optionId, mediaId])
+}
+
+// ATTEMPTS
+model Attempt {
+  id          Int       @id @default(autoincrement())
+  testId      Int
+  userId      Int
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  test        Test      @relation(fields: [testId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  responses   Response[]
+}
+
+// RESPONSES
+model Response {
+  id                Int       @id @default(autoincrement())
+  attemptId         Int
+  questionId        Int
+  selectedOptionIds Int[]    
+  answerText        String?
+  score             Decimal?
+
+  attempt           Attempt   @relation(fields: [attemptId], references: [id])
+  question          Question  @relation(fields: [questionId], references: [id])
+}
