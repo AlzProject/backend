@@ -33,6 +33,12 @@ enum USER_TYPE {
   admin
 }
 
+enum ATTEMPT_STATUS {
+  in_progress
+  submitted
+  graded
+}
+
 // =========================
 // MODELS
 // =========================
@@ -42,6 +48,7 @@ model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique
   name      String
+  password  String?
   type      USER_TYPE @default(participant)
   createdAt DateTime  @default(now())
 
@@ -57,13 +64,19 @@ model Test {
   createdBy           Int?
   createdAt           DateTime  @default(now())
   isActive            Boolean   @default(true)
-  duration            String?   // Prisma has no INTERVAL type, store as ISO8601 duration string
+  duration            String?   
   allowNegativeMarking Boolean   @default(false)
   allowPartialMarking  Boolean   @default(false)
+  shuffleQuestions    Boolean   @default(false)
+  shuffleOptions      Boolean   @default(false)
 
-  createdByUser       User?     @relation("UserTests", fields: [createdBy], references: [id])
+  createdByUser       User?     @relation("UserTests", fields: [createdBy], references: [id], onDelete: SetNull)
   sections            Section[]
   attempts            Attempt[]
+
+  @@index([createdBy])
+  @@index([isActive])
+  @@index([createdAt])
 }
 
 // SECTIONS
@@ -76,7 +89,7 @@ model Section {
   duration    String?   
   createdAt   DateTime  @default(now())
 
-  test        Test      @relation(fields: [testId], references: [id])
+  test        Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
   questions   Question[]
 }
 
@@ -92,7 +105,7 @@ model Question {
   partialMarking Boolean        @default(false)
   createdAt      DateTime       @default(now())
 
-  section        Section        @relation(fields: [sectionId], references: [id])
+  section        Section        @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   options        Option[]
   mediaLinks     QuestionMedia[]
   responses      Response[]
@@ -106,7 +119,7 @@ model Option {
   weight      Decimal       @default(0.0)
   isCorrect   Boolean       @default(false)
 
-  question    Question      @relation(fields: [questionId], references: [id])
+  question    Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
   mediaLinks  OptionMedia[]
 }
 
@@ -126,8 +139,8 @@ model QuestionMedia {
   questionId Int
   mediaId    Int
 
-  question   Question @relation(fields: [questionId], references: [id])
-  media      Media    @relation(fields: [mediaId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  media      Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
   @@id([questionId, mediaId])
 }
@@ -137,8 +150,8 @@ model OptionMedia {
   optionId Int
   mediaId  Int
 
-  option   Option @relation(fields: [optionId], references: [id])
-  media    Media  @relation(fields: [mediaId], references: [id])
+  option   Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  media    Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
   @@id([optionId, mediaId])
 }
@@ -150,10 +163,15 @@ model Attempt {
   userId      Int
   startedAt   DateTime  @default(now())
   submittedAt DateTime?
+  totalScore  Decimal?
+  status      ATTEMPT_STATUS @default(in_progress)
 
-  test        Test      @relation(fields: [testId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  test        Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   responses   Response[]
+
+  @@index([testId, userId])
+  @@index([status])
 }
 
 // RESPONSES
@@ -164,7 +182,20 @@ model Response {
   selectedOptionIds Int[]    
   answerText        String?
   score             Decimal?
+  evaluated         Boolean?  @default(false)
 
-  attempt           Attempt   @relation(fields: [attemptId], references: [id])
-  question          Question  @relation(fields: [questionId], references: [id])
+  attempt           Attempt   @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question          Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+}
+
+// INTERACTIVE FILES
+model InteractiveFile {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  label     String
+  version   String?
+  url       String   @unique
+  createdAt DateTime @default(now())
 }

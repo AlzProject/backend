@@ -19,6 +19,11 @@
     "@prisma/client": "^6.16.2",
     "express": "^5.1.0",
     "pino-http": "^10.5.0",
-    "zod": "^4.1.11"
+    "zod": "^4.1.11",
+    "js-yaml": "^4.1.0"
+  },
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "generate:docs": "bun run scripts/generate-swagger.ts"
   }
 }
