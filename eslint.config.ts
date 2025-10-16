@@ -6,6 +6,6 @@ export default [
   prettier, // disables rules that conflict with prettier
   {
     files: ["src/**/*.ts"],
-    languageOptions: { sourceType: "module" }
-  }
+    languageOptions: { sourceType: "module" },
+  },
 ];

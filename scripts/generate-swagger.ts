@@ -1,24 +1,24 @@
-import fs from 'fs';
-import path from 'path';
-import yaml from 'js-yaml';
+import fs from "fs";
+import path from "path";
+import yaml from "js-yaml";
 
 const root = process.cwd();
-const openapiPath = path.join(root, 'openapi.yaml');
-const outDir = path.join(root, 'docs');
-const outFile = path.join(outDir, 'index.html');
+const openapiPath = path.join(root, "openapi.yaml");
+const outDir = path.join(root, "docs");
+const outFile = path.join(outDir, "index.html");
 
 async function main() {
   if (!fs.existsSync(openapiPath)) {
-    console.error('openapi.yaml not found at', openapiPath);
+    console.error("openapi.yaml not found at", openapiPath);
     process.exit(1);
   }
 
-  const data = fs.readFileSync(openapiPath, 'utf8');
+  const data = fs.readFileSync(openapiPath, "utf8");
   let doc: any;
   try {
     doc = yaml.load(data);
   } catch (err) {
-    console.error('Failed to parse openapi.yaml:', err);
+    console.error("Failed to parse openapi.yaml:", err);
     process.exit(1);
   }
 
@@ -50,8 +50,8 @@ async function main() {
   </body>
 </html>`;
 
-  fs.writeFileSync(outFile, html, 'utf8');
-  console.log('Wrote', outFile);
+  fs.writeFileSync(outFile, html, "utf8");
+  console.log("Wrote", outFile);
 }
 
 main().catch((e) => {

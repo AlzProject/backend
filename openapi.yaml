@@ -3,6 +3,25 @@ info:
   title: AlzProject Backend API
   version: 0.1.0
   description: REST API for AlzProject. Uses JWT bearer auth for protected endpoints.
+tags:
+  - name: Auth
+    description: Authentication endpoints (login/register)
+  - name: Users
+    description: User management endpoints
+  - name: Tests
+    description: Test creation and management
+  - name: Sections
+    description: Sections within tests
+  - name: Questions
+    description: Questions and options
+  - name: Media
+    description: Media upload and attachments
+  - name: Attempts
+    description: Attempt lifecycle and responses
+  - name: Grading
+    description: Auto and manual grading endpoints
+  - name: Reports
+    description: Reporting endpoints
 servers:
   - url: https://alz.adityaap.tech
     description: Production
@@ -36,7 +55,7 @@ components:
         - numerical
         - text
         - match
-        - interactive
+        - file_upload
     User:
       type: object
       properties:
@@ -48,7 +67,11 @@ components:
         name:
           type: string
         type:
-          $ref: '#/components/schemas/UserType'
+          $ref: "#/components/schemas/UserType"
+        user_specific_info:
+          type: object
+          nullable: true
+          description: User-specific metadata stored as JSONB
         created_at:
           type: string
           format: date-time
@@ -68,7 +91,11 @@ components:
           type: string
           format: password
         type:
-          $ref: '#/components/schemas/UserType'
+          $ref: "#/components/schemas/UserType"
+        user_specific_info:
+          type: object
+          nullable: true
+          description: User-specific metadata stored as JSONB
     AuthRequest:
       type: object
       required:
@@ -90,7 +117,7 @@ components:
           type: string
           example: bearer
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
     Test:
       type: object
       properties:
@@ -108,8 +135,8 @@ components:
         is_active:
           type: boolean
         duration:
-          type: string
-          description: Duration as ISO8601 duration string (nullable)
+          type: integer
+          description: Duration in seconds (nullable)
         allow_negative_marking:
           type: boolean
         allow_partial_marking:
@@ -118,6 +145,10 @@ components:
           type: boolean
         shuffle_options:
           type: boolean
+        test_specific_info:
+          type: object
+          nullable: true
+          description: Test-specific metadata stored as JSONB
     TestCreate:
       type: object
       required:
@@ -131,8 +162,8 @@ components:
           type: boolean
           default: true
         duration:
-          type: string
-          description: Duration as ISO8601 duration string
+          type: integer
+          description: Duration in seconds (nullable)
         allow_negative_marking:
           type: boolean
           default: false
@@ -145,6 +176,10 @@ components:
         shuffle_options:
           type: boolean
           default: false
+        test_specific_info:
+          type: object
+          nullable: true
+          description: Test-specific metadata stored as JSONB
     Section:
       type: object
       properties:
@@ -159,8 +194,8 @@ components:
         order_index:
           type: integer
         duration:
-          type: string
-          description: Duration as ISO8601 duration string (nullable)
+          type: integer
+          description: Duration in seconds (nullable)
         created_at:
           type: string
           format: date-time
@@ -177,8 +212,8 @@ components:
         order_index:
           type: integer
         duration:
-          type: string
-          description: Duration as ISO8601 duration string
+          type: integer
+          description: Duration in seconds (nullable)
     Question:
       type: object
       properties:
@@ -189,7 +224,7 @@ components:
         text:
           type: string
         type:
-          $ref: '#/components/schemas/QuestionType'
+          $ref: "#/components/schemas/QuestionType"
         ans:
           type: string
           nullable: true
@@ -214,7 +249,7 @@ components:
         text:
           type: string
         type:
-          $ref: '#/components/schemas/QuestionType'
+          $ref: "#/components/schemas/QuestionType"
         ans:
           type: string
         max_score:
@@ -266,7 +301,15 @@ components:
         label:
           type: string
         type:
-          $ref: '#/components/schemas/MediaFileType'
+          $ref: "#/components/schemas/MediaFileType"
+        url:
+          type: string
+          nullable: true
+          description: URL to the hosted media file
+        version:
+          type: string
+          nullable: true
+          description: Version identifier for the media
     Attempt:
       type: object
       properties:
@@ -370,20 +413,6 @@ components:
           type: integer
         offset:
           type: integer
-    InteractiveFile:
-      type: object
-      properties:
-        id:
-          type: integer
-        filename:
-          type: string
-        label:
-          type: string
-        version:
-          type: string
-        url:
-          type: string
-
     TestUpdate:
       type: object
       properties:
@@ -403,6 +432,10 @@ components:
           type: boolean
         shuffle_options:
           type: boolean
+        test_specific_info:
+          type: object
+          nullable: true
+          description: Test-specific metadata stored as JSONB
 
     SectionUpdate:
       type: object
@@ -422,7 +455,7 @@ components:
         text:
           type: string
         type:
-          $ref: '#/components/schemas/QuestionType'
+          $ref: "#/components/schemas/QuestionType"
         ans:
           type: string
         max_score:
@@ -451,7 +484,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/User'
+            $ref: "#/components/schemas/User"
         total:
           type: integer
         limit:
@@ -463,44 +496,50 @@ security:
 paths:
   /auth/register:
     post:
+      tags:
+        - Auth
       summary: Register a new user
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: "#/components/schemas/UserCreate"
       security: []
       responses:
-        '201':
+        "201":
           description: User created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
+                $ref: "#/components/schemas/User"
+        "400":
           description: Validation error
   /auth/login:
     post:
+      tags:
+        - Auth
       summary: Login (returns JWT)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthRequest'
+              $ref: "#/components/schemas/AuthRequest"
       security: []
       responses:
-        '200':
+        "200":
           description: Authenticated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
           description: Invalid credentials
   /users:
     get:
+      tags:
+        - Users
       summary: List users (admin/tester)
       parameters:
         - name: limit
@@ -514,33 +553,37 @@ paths:
             type: integer
             default: 0
       responses:
-        '200':
+        "200":
           description: Paged users
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedUserList'
+                $ref: "#/components/schemas/PagedUserList"
       security:
         - bearerAuth: []
     post:
+      tags:
+        - Users
       summary: Create user (admin)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: "#/components/schemas/UserCreate"
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
       security:
         - bearerAuth: []
   /users/{userId}:
     get:
+      tags:
+        - Users
       summary: Get user by id
       parameters:
         - name: userId
@@ -549,15 +592,17 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: User
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
       security:
         - bearerAuth: []
     patch:
+      tags:
+        - Users
       summary: Update user (admin or self)
       parameters:
         - name: userId
@@ -578,17 +623,19 @@ paths:
                   type: string
                   format: email
                 type:
-                  $ref: '#/components/schemas/UserType'
+                  $ref: "#/components/schemas/UserType"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Users
       summary: Delete user (admin)
       parameters:
         - name: userId
@@ -597,12 +644,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
       security:
         - bearerAuth: []
   /tests:
     get:
+      tags:
+        - Tests
       summary: List tests
       parameters:
         - name: limit
@@ -620,31 +669,35 @@ paths:
           schema:
             type: boolean
       responses:
-        '200':
+        "200":
           description: Paged tests
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedList'
+                $ref: "#/components/schemas/PagedList"
     post:
+      tags:
+        - Tests
       summary: Create a test
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestCreate'
+              $ref: "#/components/schemas/TestCreate"
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: "#/components/schemas/Test"
       security:
         - bearerAuth: []
   /tests/{testId}:
     get:
+      tags:
+        - Tests
       summary: Get a test (includes minimal sections list)
       parameters:
         - name: testId
@@ -653,13 +706,15 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Test
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: "#/components/schemas/Test"
     patch:
+      tags:
+        - Tests
       summary: Update test
       parameters:
         - name: testId
@@ -672,17 +727,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestUpdate'
+              $ref: "#/components/schemas/TestUpdate"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Test'
+                $ref: "#/components/schemas/Test"
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Tests
       summary: Delete test
       parameters:
         - name: testId
@@ -691,12 +748,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
       security:
         - bearerAuth: []
   /tests/{testId}/sections:
     post:
+      tags:
+        - Sections
       summary: Create section inside test
       parameters:
         - name: testId
@@ -709,17 +768,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SectionCreate'
+              $ref: "#/components/schemas/SectionCreate"
       responses:
-        '201':
+        "201":
           description: Section created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Section'
+                $ref: "#/components/schemas/Section"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Sections
       summary: List sections of a test
       parameters:
         - name: testId
@@ -728,16 +789,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: List
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Section'
+                  $ref: "#/components/schemas/Section"
   /sections/{sectionId}:
     get:
+      tags:
+        - Sections
       summary: Get section
       parameters:
         - name: sectionId
@@ -746,13 +809,15 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Section
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Section'
+                $ref: "#/components/schemas/Section"
     patch:
+      tags:
+        - Sections
       summary: Update section
       parameters:
         - name: sectionId
@@ -765,17 +830,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SectionUpdate'
+              $ref: "#/components/schemas/SectionUpdate"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Section'
+                $ref: "#/components/schemas/Section"
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Sections
       summary: Delete section
       parameters:
         - name: sectionId
@@ -784,12 +851,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
       security:
         - bearerAuth: []
   /sections/{sectionId}/questions:
     post:
+      tags:
+        - Questions
       summary: Create question in section
       parameters:
         - name: sectionId
@@ -802,17 +871,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuestionCreate'
+              $ref: "#/components/schemas/QuestionCreate"
       responses:
-        '201':
+        "201":
           description: Question created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Question'
+                $ref: "#/components/schemas/Question"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Questions
       summary: List questions in section
       parameters:
         - name: sectionId
@@ -821,16 +892,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: List
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Question'
+                  $ref: "#/components/schemas/Question"
   /questions/{questionId}:
     get:
+      tags:
+        - Questions
       summary: Get question (with options & media)
       parameters:
         - name: questionId
@@ -839,13 +912,15 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Question
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Question'
+                $ref: "#/components/schemas/Question"
     patch:
+      tags:
+        - Questions
       summary: Update question
       parameters:
         - name: questionId
@@ -858,17 +933,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuestionUpdate'
+              $ref: "#/components/schemas/QuestionUpdate"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Question'
+                $ref: "#/components/schemas/Question"
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Questions
       summary: Delete question
       parameters:
         - name: questionId
@@ -877,12 +954,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
       security:
         - bearerAuth: []
   /questions/{questionId}/options:
     post:
+      tags:
+        - Questions
       summary: Create option for question
       parameters:
         - name: questionId
@@ -895,17 +974,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OptionCreate'
+              $ref: "#/components/schemas/OptionCreate"
       responses:
-        '201':
+        "201":
           description: Option created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Option'
+                $ref: "#/components/schemas/Option"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Questions
       summary: List options for a question
       parameters:
         - name: questionId
@@ -914,16 +995,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: List
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Option'
+                  $ref: "#/components/schemas/Option"
   /options/{optionId}:
     patch:
+      tags:
+        - Questions
       summary: Update option
       parameters:
         - name: optionId
@@ -936,17 +1019,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OptionUpdate'
+              $ref: "#/components/schemas/OptionUpdate"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Option'
+                $ref: "#/components/schemas/Option"
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Questions
       summary: Delete option
       parameters:
         - name: optionId
@@ -955,12 +1040,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Deleted
       security:
         - bearerAuth: []
   /media:
     post:
+      tags:
+        - Media
       summary: Upload media file
       requestBody:
         required: true
@@ -976,19 +1063,21 @@ paths:
                   type: string
                   format: binary
                 type:
-                  $ref: '#/components/schemas/MediaFileType'
+                  $ref: "#/components/schemas/MediaFileType"
                 label:
                   type: string
       responses:
-        '201':
+        "201":
           description: Uploaded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Media'
+                $ref: "#/components/schemas/Media"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Media
       summary: List media
       parameters:
         - name: limit
@@ -1002,16 +1091,18 @@ paths:
             type: integer
             default: 0
       responses:
-        '200':
+        "200":
           description: Paged list
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedList'
+                $ref: "#/components/schemas/PagedList"
       security:
         - bearerAuth: []
   /questions/{questionId}/media/{mediaId}:
     post:
+      tags:
+        - Media
       summary: Attach media to question
       parameters:
         - name: questionId
@@ -1025,11 +1116,13 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Attached
       security:
         - bearerAuth: []
     delete:
+      tags:
+        - Media
       summary: Detach media from question
       parameters:
         - name: questionId
@@ -1043,15 +1136,17 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Detached
       security:
         - bearerAuth: []
   /options/{optionId}/media/{mediaId}:
     post:
+      tags:
+        - Media
       summary: Attach media to option
       responses:
-        '204':
+        "204":
           description: Attached
       security:
         - bearerAuth: []
@@ -1067,9 +1162,11 @@ paths:
           schema:
             type: integer
     delete:
+      tags:
+        - Media
       summary: Detach media from option
       responses:
-        '204':
+        "204":
           description: Detached
       security:
         - bearerAuth: []
@@ -1084,67 +1181,29 @@ paths:
           required: true
           schema:
             type: integer
-  /interactive-files:
-    post:
-      summary: Upload interactive question code/file (JS bundle etc.)
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - file
-                - label
-              properties:
-                file:
-                  type: string
-                  format: binary
-                label:
-                  type: string
-                version:
-                  type: string
-      responses:
-        '201':
-          description: Uploaded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InteractiveFile'
-      security:
-        - bearerAuth: []
-    get:
-      summary: List interactive files
-      responses:
-        '200':
-          description: List
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/InteractiveFile'
-      security:
-        - bearerAuth: []
   /attempts:
     post:
+      tags:
+        - Attempts
       summary: Start an attempt (creates attempt row and returns id + start time)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AttemptStartRequest'
+              $ref: "#/components/schemas/AttemptStartRequest"
       responses:
-        '201':
+        "201":
           description: Attempt started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Attempt'
+                $ref: "#/components/schemas/Attempt"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Attempts
       summary: List user's attempts
       parameters:
         - name: user_id
@@ -1162,16 +1221,18 @@ paths:
             type: integer
             default: 0
       responses:
-        '200':
+        "200":
           description: Paged list
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedList'
+                $ref: "#/components/schemas/PagedList"
       security:
         - bearerAuth: []
   /attempts/{attemptId}:
     get:
+      tags:
+        - Attempts
       summary: Get attempt (and current responses)
       parameters:
         - name: attemptId
@@ -1180,15 +1241,17 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Attempt
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Attempt'
+                $ref: "#/components/schemas/Attempt"
       security:
         - bearerAuth: []
     post:
+      tags:
+        - Attempts
       summary: Submit attempt (finalize and optionally trigger auto-grading)
       parameters:
         - name: attemptId
@@ -1207,33 +1270,37 @@ paths:
                   type: string
                   format: date-time
       responses:
-        '200':
+        "200":
           description: Submitted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Attempt'
+                $ref: "#/components/schemas/Attempt"
       security:
         - bearerAuth: []
   /responses:
     post:
+      tags:
+        - Attempts
       summary: Submit a response for a question (can be used while attempt in progress)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResponseSubmit'
+              $ref: "#/components/schemas/ResponseSubmit"
       responses:
-        '201':
+        "201":
           description: Saved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: "#/components/schemas/Response"
       security:
         - bearerAuth: []
     get:
+      tags:
+        - Attempts
       summary: List responses (filter by attempt or question)
       parameters:
         - name: attempt_id
@@ -1255,16 +1322,18 @@ paths:
             type: integer
             default: 0
       responses:
-        '200':
+        "200":
           description: Paged responses
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedList'
+                $ref: "#/components/schemas/PagedList"
       security:
         - bearerAuth: []
   /responses/{responseId}:
     get:
+      tags:
+        - Attempts
       summary: Get a response
       parameters:
         - name: responseId
@@ -1273,15 +1342,17 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: "#/components/schemas/Response"
       security:
         - bearerAuth: []
     patch:
+      tags:
+        - Attempts
       summary: Update response (manual edit or evaluator override)
       parameters:
         - name: responseId
@@ -1294,18 +1365,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EvaluationRequest'
+              $ref: "#/components/schemas/EvaluationRequest"
       responses:
-        '200':
+        "200":
           description: Updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: "#/components/schemas/Response"
       security:
         - bearerAuth: []
   /grading/auto:
     post:
+      tags:
+        - Grading
       summary: Trigger auto-grading for an attempt (server-side evaluation for sc/mc mcq, numerical, text if configured)
       requestBody:
         required: true
@@ -1319,7 +1392,7 @@ paths:
                 attempt_id:
                   type: integer
       responses:
-        '200':
+        "200":
           description: Auto-grading started/completed
           content:
             application/json:
@@ -1327,31 +1400,35 @@ paths:
                 type: object
                 properties:
                   attempt:
-                    $ref: '#/components/schemas/Attempt'
+                    $ref: "#/components/schemas/Attempt"
                   graded_responses_count:
                     type: integer
       security:
         - bearerAuth: []
   /grading/manual:
     post:
+      tags:
+        - Grading
       summary: Manual grading entry (evaluator provides score for a response)
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EvaluationRequest'
+              $ref: "#/components/schemas/EvaluationRequest"
       responses:
-        '200':
+        "200":
           description: Response graded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: "#/components/schemas/Response"
       security:
         - bearerAuth: []
   /reports/attempt/{attemptId}/score:
     get:
+      tags:
+        - Reports
       summary: Get final score/details for attempt
       parameters:
         - name: attemptId
@@ -1360,7 +1437,7 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Score report
           content:
             application/json:
@@ -1368,11 +1445,11 @@ paths:
                 type: object
                 properties:
                   attempt:
-                    $ref: '#/components/schemas/Attempt'
+                    $ref: "#/components/schemas/Attempt"
                   responses:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Response'
+                      $ref: "#/components/schemas/Response"
                   total_score:
                     type: number
                     format: float
