@@ -1,13 +1,9 @@
-import express from "express";
-import pino from "pino-http";
+import createApp from "./src/app.js";
+import config from "./src/config/config.js";
+import logger from "./src/utils/logger.js";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const logger = pino().logger;
-
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
+const app = createApp();
+const PORT = config.PORT;
 
 app.listen(PORT, () => {
   logger.info(`Server is running on http://localhost:${PORT}`);

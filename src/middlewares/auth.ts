@@ -1,59 +1,90 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import config from "../config/config";
-import { TokenPayload } from "../types/jwt";
+/**
+ * JWT authentication middleware.
+ *
+ * Validates incoming JWT bearer tokens and attaches the decoded payload
+ * to the request object for downstream handlers.
+ *
+ * Usage:
+ *   - Apply to protected routes
+ *   - Throws AuthenticationError if token is missing, invalid, or expired
+ */
+
+import type { Request, Response, NextFunction } from "express";
+import { verify } from "jsonwebtoken";
+import config from "../config/config.js";
+import {
+  AuthenticationError,
+  asyncHandler,
+} from "./errorHandler.js";
+import type { TokenPayload } from "../types/jwt.js";
 
 /**
- * Express middleware to authenticate requests using a Bearer JWT token.
- *
- * Behavior:
- * - Reads the `Authorization` header and expects the scheme `Bearer <token>`.
- * - Verifies the token using the `JWT_SECRET` from `src/config` or environment.
- * - On success, attaches the decoded token payload to `req.user`.
- * - On failure, responds with `401 Unauthorized` or `403 Forbidden`.
- *
- * @param req - Express request object. Augmented with `user?: TokenPayload` on success.
- * @param res - Express response object.
- * @param next - Express next middleware function.
+ * Extract and validate JWT from Authorization header
  */
-export default function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const authHeader =
-    (req.headers["authorization"] || req.headers["Authorization"]) as
-      | string
-      | undefined;
-
+function extractToken(authHeader: string | undefined): string {
   if (!authHeader) {
-    return res.status(401).json({ message: "Missing Authorization header" });
+    throw new AuthenticationError("Missing authorization header");
   }
 
   const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-    return res.status(401).json({
-      message: "Invalid Authorization header format",
-    });
+
+  if (parts.length !== 2) {
+    throw new AuthenticationError("Invalid authorization header format");
   }
 
-  const token = parts[1];
+  const [scheme, token] = parts;
 
-  const secret = (config && (config as any).JWT_SECRET) ||
-    process.env.JWT_SECRET;
-  if (!secret || typeof secret !== "string") {
-    return res.status(500).json({ message: "Authentication not configured" });
+  if (scheme.toLowerCase() !== "bearer") {
+    throw new AuthenticationError("Invalid authentication scheme");
   }
 
-  try {
-    const decoded = jwt.verify(token, secret) as TokenPayload;
-    req.user = decoded;
-
-    return next();
-  } catch (err: any) {
-    if (err && err.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    return res.status(403).json({ message: "Invalid token" });
-  }
+  return token;
 }
+
+/**
+ * Middleware to verify JWT token
+ */
+export const authenticate = asyncHandler(
+  async (req: Request, _res: Response, next: NextFunction) => {
+    const token = extractToken(req.headers.authorization);
+
+    try {
+      const payload = verify(token, config.JWT_SECRET) as TokenPayload;
+      req.user = payload;
+      next();
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "TokenExpiredError") {
+          throw new AuthenticationError("Token has expired");
+        } else if (err.name === "JsonWebTokenError") {
+          throw new AuthenticationError("Invalid token");
+        }
+      }
+      throw new AuthenticationError("Token verification failed");
+    }
+  }
+);
+
+/**
+ * Optional authentication middleware
+ * Attaches user if valid token provided, otherwise continues without user
+ */
+export const authenticateOptional = asyncHandler(
+  async (req: Request, _res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return next();
+    }
+
+    try {
+      const token = extractToken(authHeader);
+      const payload = verify(token, config.JWT_SECRET) as TokenPayload;
+      req.user = payload;
+    } catch (err) {
+      // Ignore errors in optional auth, just continue without user
+    }
+
+    next();
+  }
+);
