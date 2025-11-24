@@ -30,39 +30,56 @@ export interface AuthResponse {
 }
 
 /**
- * Hash a password using PBKDF2
+ * Hash a password using PBKDF2 (async)
  */
 export async function hashPassword(password: string): Promise<string> {
-  const salt = crypto.randomBytes(32);
-  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha256");
-  return salt.toString("hex") + ":" + hash.toString("hex");
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(32);
+    crypto.pbkdf2(
+      password,
+      salt,
+      100000,
+      64,
+      "sha256",
+      (err, hash) => {
+        if (err) reject(err);
+        resolve(salt.toString("hex") + ":" + hash.toString("hex"));
+      }
+    );
+  });
 }
 
 /**
- * Verify a password against a stored hash
+ * Verify a password against a stored hash (async)
  */
 export async function verifyPassword(
   password: string,
   hash: string
 ): Promise<boolean> {
-  const [salt, storedHash] = hash.split(":");
-  const hashOfInput = crypto.pbkdf2Sync(
-    password,
-    Buffer.from(salt, "hex"),
-    100000,
-    64,
-    "sha256"
-  );
-  return hashOfInput.toString("hex") === storedHash;
+  return new Promise((resolve, reject) => {
+    const [salt, storedHash] = hash.split(":");
+    crypto.pbkdf2(
+      password,
+      Buffer.from(salt, "hex"),
+      100000,
+      64,
+      "sha256",
+      (err, hashOfInput) => {
+        if (err) reject(err);
+        resolve(hashOfInput.toString("hex") === storedHash);
+      }
+    );
+  });
 }
 
 /**
  * Generate a JWT token for the user
  */
-export function generateToken(userId: number, email: string): string {
+export function generateToken(userId: number, email: string, userType: string): string {
   const payload: TokenPayload = {
     sub: userId.toString(),
     email,
+    type: userType,
   };
 
   return sign(payload, config.JWT_SECRET, {
@@ -128,7 +145,7 @@ export async function loginUser(
   }
 
   // Generate token
-  const token = generateToken(user.id, user.email);
+  const token = generateToken(user.id, user.email, user.type);
 
   return {
     access_token: token,
@@ -138,7 +155,7 @@ export async function loginUser(
       email: user.email,
       name: user.name,
       type: user.type,
-      user_specific_info: user.user_specific_info,
+      user_specific_info: user.user_specific_info as Record<string, any> | null,
       createdAt: user.createdAt,
     },
   };

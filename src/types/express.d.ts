@@ -9,6 +9,16 @@ declare global {
     interface Request {
       /** Decoded JWT payload attached by `src/middlewares/auth.ts` */
       user?: import("./jwt").TokenPayload;
+
+      /** Uploaded file attached by `src/middlewares/multipart.ts` */
+      file?: {
+        fieldname: string;
+        originalname: string;
+        encoding: string;
+        mimetype: string;
+        buffer: Buffer;
+        size: number;
+      };
     }
   }
 }

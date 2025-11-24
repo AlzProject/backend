@@ -22,6 +22,7 @@ import {
   ValidationError,
   ConflictError,
   NotFoundError,
+  AuthenticationError,
   asyncHandler,
 } from "../middlewares/errorHandler.js";
 
@@ -100,7 +101,7 @@ export const login = asyncHandler(
       res.status(200).json(authResponse);
     } catch (err) {
       if (err instanceof Error && err.message.includes("Invalid credentials")) {
-        throw new ValidationError("Invalid credentials");
+        throw new AuthenticationError(err.message);
       }
       throw err;
     }
