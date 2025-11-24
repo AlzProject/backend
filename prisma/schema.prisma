@@ -17,7 +17,6 @@ enum QUESTION_TYPE {
   mcmcq
   numerical
   text
-  match
   file_upload
 }
 

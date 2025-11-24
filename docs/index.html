@@ -99,7 +99,6 @@
           "mcmcq",
           "numerical",
           "text",
-          "match",
           "file_upload"
         ]
       },
@@ -124,7 +123,7 @@
             "nullable": true,
             "description": "User-specific metadata stored as JSONB"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -203,30 +202,30 @@
           "description": {
             "type": "string"
           },
-          "created_by": {
+          "createdBy": {
             "type": "integer"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           },
-          "is_active": {
+          "isActive": {
             "type": "boolean"
           },
           "duration": {
             "type": "integer",
             "description": "Duration in seconds (nullable)"
           },
-          "allow_negative_marking": {
+          "allowNegativeMarking": {
             "type": "boolean"
           },
-          "allow_partial_marking": {
+          "allowPartialMarking": {
             "type": "boolean"
           },
-          "shuffle_questions": {
+          "shuffleQuestions": {
             "type": "boolean"
           },
-          "shuffle_options": {
+          "shuffleOptions": {
             "type": "boolean"
           },
           "test_specific_info": {
@@ -248,7 +247,7 @@
           "description": {
             "type": "string"
           },
-          "is_active": {
+          "isActive": {
             "type": "boolean",
             "default": true
           },
@@ -256,19 +255,19 @@
             "type": "integer",
             "description": "Duration in seconds (nullable)"
           },
-          "allow_negative_marking": {
+          "allowNegativeMarking": {
             "type": "boolean",
             "default": false
           },
-          "allow_partial_marking": {
+          "allowPartialMarking": {
             "type": "boolean",
             "default": false
           },
-          "shuffle_questions": {
+          "shuffleQuestions": {
             "type": "boolean",
             "default": false
           },
-          "shuffle_options": {
+          "shuffleOptions": {
             "type": "boolean",
             "default": false
           },
@@ -285,7 +284,7 @@
           "id": {
             "type": "integer"
           },
-          "test_id": {
+          "testId": {
             "type": "integer"
           },
           "title": {
@@ -294,14 +293,14 @@
           "description": {
             "type": "string"
           },
-          "order_index": {
+          "orderIndex": {
             "type": "integer"
           },
           "duration": {
             "type": "integer",
             "description": "Duration in seconds (nullable)"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -311,7 +310,7 @@
         "type": "object",
         "required": [
           "title",
-          "order_index"
+          "orderIndex"
         ],
         "properties": {
           "title": {
@@ -320,7 +319,7 @@
           "description": {
             "type": "string"
           },
-          "order_index": {
+          "orderIndex": {
             "type": "integer"
           },
           "duration": {
@@ -335,7 +334,7 @@
           "id": {
             "type": "integer"
           },
-          "section_id": {
+          "sectionId": {
             "type": "integer"
           },
           "text": {
@@ -349,18 +348,18 @@
             "nullable": true,
             "description": "Canonical/correct answer for server-evaluated question types"
           },
-          "max_score": {
+          "maxScore": {
             "type": "number",
             "format": "float"
           },
-          "negative_score": {
+          "negativeScore": {
             "type": "number",
             "format": "float"
           },
-          "partial_marking": {
+          "partialMarking": {
             "type": "boolean"
           },
-          "created_at": {
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -382,17 +381,17 @@
           "ans": {
             "type": "string"
           },
-          "max_score": {
+          "maxScore": {
             "type": "number",
             "format": "float",
             "default": 1
           },
-          "negative_score": {
+          "negativeScore": {
             "type": "number",
             "format": "float",
             "default": 0
           },
-          "partial_marking": {
+          "partialMarking": {
             "type": "boolean",
             "default": false
           }
@@ -404,14 +403,14 @@
           "id": {
             "type": "integer"
           },
-          "question_id": {
+          "questionId": {
             "type": "integer"
           },
           "text": {
             "type": "string",
             "nullable": true
           },
-          "is_correct": {
+          "isCorrect": {
             "type": "boolean"
           },
           "weight": {
@@ -427,7 +426,7 @@
           "text": {
             "type": "string"
           },
-          "is_correct": {
+          "isCorrect": {
             "type": "boolean",
             "default": false
           },
@@ -471,22 +470,22 @@
           "id": {
             "type": "integer"
           },
-          "test_id": {
+          "testId": {
             "type": "integer"
           },
-          "user_id": {
+          "userId": {
             "type": "integer"
           },
-          "started_at": {
+          "startedAt": {
             "type": "string",
             "format": "date-time"
           },
-          "submitted_at": {
+          "submittedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
           },
-          "total_score": {
+          "totalScore": {
             "type": "number",
             "format": "float",
             "nullable": true
@@ -504,10 +503,10 @@
       "AttemptStartRequest": {
         "type": "object",
         "required": [
-          "test_id"
+          "testId"
         ],
         "properties": {
-          "test_id": {
+          "testId": {
             "type": "integer"
           }
         }
@@ -518,20 +517,20 @@
           "id": {
             "type": "integer"
           },
-          "attempt_id": {
+          "attemptId": {
             "type": "integer"
           },
-          "question_id": {
+          "questionId": {
             "type": "integer"
           },
-          "selected_option_ids": {
+          "selectedOptionIds": {
             "type": "array",
             "items": {
               "type": "integer"
             },
             "nullable": true
           },
-          "answer_text": {
+          "answerText": {
             "type": "string",
             "nullable": true
           },
@@ -549,23 +548,23 @@
       "ResponseSubmit": {
         "type": "object",
         "required": [
-          "attempt_id",
-          "question_id"
+          "attemptId",
+          "questionId"
         ],
         "properties": {
-          "attempt_id": {
+          "attemptId": {
             "type": "integer"
           },
-          "question_id": {
+          "questionId": {
             "type": "integer"
           },
-          "selected_option_ids": {
+          "selectedOptionIds": {
             "type": "array",
             "items": {
               "type": "integer"
             }
           },
-          "answer_text": {
+          "answerText": {
             "type": "string"
           },
           "score": {
@@ -578,11 +577,11 @@
       "EvaluationRequest": {
         "type": "object",
         "required": [
-          "response_id",
+          "responseId",
           "score"
         ],
         "properties": {
-          "response_id": {
+          "responseId": {
             "type": "integer"
           },
           "score": {
@@ -623,22 +622,22 @@
           "description": {
             "type": "string"
           },
-          "is_active": {
+          "isActive": {
             "type": "boolean"
           },
           "duration": {
-            "type": "string"
+            "type": "integer"
           },
-          "allow_negative_marking": {
+          "allowNegativeMarking": {
             "type": "boolean"
           },
-          "allow_partial_marking": {
+          "allowPartialMarking": {
             "type": "boolean"
           },
-          "shuffle_questions": {
+          "shuffleQuestions": {
             "type": "boolean"
           },
-          "shuffle_options": {
+          "shuffleOptions": {
             "type": "boolean"
           },
           "test_specific_info": {
@@ -657,11 +656,11 @@
           "description": {
             "type": "string"
           },
-          "order_index": {
+          "orderIndex": {
             "type": "integer"
           },
           "duration": {
-            "type": "string"
+            "type": "integer"
           }
         }
       },
@@ -677,15 +676,15 @@
           "ans": {
             "type": "string"
           },
-          "max_score": {
+          "maxScore": {
             "type": "number",
             "format": "float"
           },
-          "negative_score": {
+          "negativeScore": {
             "type": "number",
             "format": "float"
           },
-          "partial_marking": {
+          "partialMarking": {
             "type": "boolean"
           }
         }
@@ -696,7 +695,7 @@
           "text": {
             "type": "string"
           },
-          "is_correct": {
+          "isCorrect": {
             "type": "boolean"
           },
           "weight": {

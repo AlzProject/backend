@@ -23,9 +23,9 @@ tags:
   - name: Reports
     description: Reporting endpoints
 servers:
-  - url: https://alz.adityaap.tech
+  - url: https://alz.adityaap.tech/v1
     description: Production
-  - url: http://localhost:3000
+  - url: http://localhost:3000/v1
     description: Local
 components:
   securitySchemes:
@@ -54,7 +54,6 @@ components:
         - mcmcq
         - numerical
         - text
-        - match
         - file_upload
     User:
       type: object
@@ -72,7 +71,7 @@ components:
           type: object
           nullable: true
           description: User-specific metadata stored as JSONB
-        created_at:
+        createdAt:
           type: string
           format: date-time
     UserCreate:
@@ -127,23 +126,23 @@ components:
           type: string
         description:
           type: string
-        created_by:
+        createdBy:
           type: integer
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        is_active:
+        isActive:
           type: boolean
         duration:
           type: integer
           description: Duration in seconds (nullable)
-        allow_negative_marking:
+        allowNegativeMarking:
           type: boolean
-        allow_partial_marking:
+        allowPartialMarking:
           type: boolean
-        shuffle_questions:
+        shuffleQuestions:
           type: boolean
-        shuffle_options:
+        shuffleOptions:
           type: boolean
         test_specific_info:
           type: object
@@ -158,22 +157,22 @@ components:
           type: string
         description:
           type: string
-        is_active:
+        isActive:
           type: boolean
           default: true
         duration:
           type: integer
           description: Duration in seconds (nullable)
-        allow_negative_marking:
+        allowNegativeMarking:
           type: boolean
           default: false
-        allow_partial_marking:
+        allowPartialMarking:
           type: boolean
           default: false
-        shuffle_questions:
+        shuffleQuestions:
           type: boolean
           default: false
-        shuffle_options:
+        shuffleOptions:
           type: boolean
           default: false
         test_specific_info:
@@ -185,31 +184,31 @@ components:
       properties:
         id:
           type: integer
-        test_id:
+        testId:
           type: integer
         title:
           type: string
         description:
           type: string
-        order_index:
+        orderIndex:
           type: integer
         duration:
           type: integer
           description: Duration in seconds (nullable)
-        created_at:
+        createdAt:
           type: string
           format: date-time
     SectionCreate:
       type: object
       required:
         - title
-        - order_index
+        - orderIndex
       properties:
         title:
           type: string
         description:
           type: string
-        order_index:
+        orderIndex:
           type: integer
         duration:
           type: integer
@@ -219,7 +218,7 @@ components:
       properties:
         id:
           type: integer
-        section_id:
+        sectionId:
           type: integer
         text:
           type: string
@@ -229,15 +228,15 @@ components:
           type: string
           nullable: true
           description: Canonical/correct answer for server-evaluated question types
-        max_score:
+        maxScore:
           type: number
           format: float
-        negative_score:
+        negativeScore:
           type: number
           format: float
-        partial_marking:
+        partialMarking:
           type: boolean
-        created_at:
+        createdAt:
           type: string
           format: date-time
     QuestionCreate:
@@ -252,15 +251,15 @@ components:
           $ref: "#/components/schemas/QuestionType"
         ans:
           type: string
-        max_score:
+        maxScore:
           type: number
           format: float
           default: 1
-        negative_score:
+        negativeScore:
           type: number
           format: float
           default: 0
-        partial_marking:
+        partialMarking:
           type: boolean
           default: false
     Option:
@@ -268,12 +267,12 @@ components:
       properties:
         id:
           type: integer
-        question_id:
+        questionId:
           type: integer
         text:
           type: string
           nullable: true
-        is_correct:
+        isCorrect:
           type: boolean
         weight:
           type: number
@@ -284,7 +283,7 @@ components:
       properties:
         text:
           type: string
-        is_correct:
+        isCorrect:
           type: boolean
           default: false
         weight:
@@ -315,18 +314,18 @@ components:
       properties:
         id:
           type: integer
-        test_id:
+        testId:
           type: integer
-        user_id:
+        userId:
           type: integer
-        started_at:
+        startedAt:
           type: string
           format: date-time
-        submitted_at:
+        submittedAt:
           type: string
           format: date-time
           nullable: true
-        total_score:
+        totalScore:
           type: number
           format: float
           nullable: true
@@ -339,25 +338,25 @@ components:
     AttemptStartRequest:
       type: object
       required:
-        - test_id
+        - testId
       properties:
-        test_id:
+        testId:
           type: integer
     Response:
       type: object
       properties:
         id:
           type: integer
-        attempt_id:
+        attemptId:
           type: integer
-        question_id:
+        questionId:
           type: integer
-        selected_option_ids:
+        selectedOptionIds:
           type: array
           items:
             type: integer
           nullable: true
-        answer_text:
+        answerText:
           type: string
           nullable: true
         score:
@@ -370,18 +369,18 @@ components:
     ResponseSubmit:
       type: object
       required:
-        - attempt_id
-        - question_id
+        - attemptId
+        - questionId
       properties:
-        attempt_id:
+        attemptId:
           type: integer
-        question_id:
+        questionId:
           type: integer
-        selected_option_ids:
+        selectedOptionIds:
           type: array
           items:
             type: integer
-        answer_text:
+        answerText:
           type: string
         score:
           type: number
@@ -390,10 +389,10 @@ components:
     EvaluationRequest:
       type: object
       required:
-        - response_id
+        - responseId
         - score
       properties:
-        response_id:
+        responseId:
           type: integer
         score:
           type: number
@@ -420,17 +419,17 @@ components:
           type: string
         description:
           type: string
-        is_active:
+        isActive:
           type: boolean
         duration:
-          type: string
-        allow_negative_marking:
+          type: integer
+        allowNegativeMarking:
           type: boolean
-        allow_partial_marking:
+        allowPartialMarking:
           type: boolean
-        shuffle_questions:
+        shuffleQuestions:
           type: boolean
-        shuffle_options:
+        shuffleOptions:
           type: boolean
         test_specific_info:
           type: object
@@ -444,10 +443,10 @@ components:
           type: string
         description:
           type: string
-        order_index:
+        orderIndex:
           type: integer
         duration:
-          type: string
+          type: integer
 
     QuestionUpdate:
       type: object
@@ -458,13 +457,13 @@ components:
           $ref: "#/components/schemas/QuestionType"
         ans:
           type: string
-        max_score:
+        maxScore:
           type: number
           format: float
-        negative_score:
+        negativeScore:
           type: number
           format: float
-        partial_marking:
+        partialMarking:
           type: boolean
 
     OptionUpdate:
@@ -472,7 +471,7 @@ components:
       properties:
         text:
           type: string
-        is_correct:
+        isCorrect:
           type: boolean
         weight:
           type: number
