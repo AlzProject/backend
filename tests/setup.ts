@@ -7,6 +7,7 @@
  * - Authentication token generation
  */
 
+import "dotenv/config";
 import { beforeAll, afterEach, afterAll, vi } from "vitest";
 import prisma from "../src/db/client.js";
 import * as userService from "../src/services/user.service.js";

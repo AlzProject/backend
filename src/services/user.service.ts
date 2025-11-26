@@ -30,46 +30,27 @@ export interface AuthResponse {
 }
 
 /**
- * Hash a password using PBKDF2 (async)
+ * Hash a password using PBKDF2 (sync)
  */
-export async function hashPassword(password: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const salt = crypto.randomBytes(32);
-    crypto.pbkdf2(
-      password,
-      salt,
-      100000,
-      64,
-      "sha256",
-      (err, hash) => {
-        if (err) reject(err);
-        resolve(salt.toString("hex") + ":" + hash.toString("hex"));
-      }
-    );
-  });
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(32);
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha256");
+  return salt.toString("hex") + ":" + hash.toString("hex");
 }
 
 /**
- * Verify a password against a stored hash (async)
+ * Verify a password against a stored hash (sync)
  */
-export async function verifyPassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    const [salt, storedHash] = hash.split(":");
-    crypto.pbkdf2(
-      password,
-      Buffer.from(salt, "hex"),
-      100000,
-      64,
-      "sha256",
-      (err, hashOfInput) => {
-        if (err) reject(err);
-        resolve(hashOfInput.toString("hex") === storedHash);
-      }
-    );
-  });
+export function verifyPassword(password: string, hash: string): boolean {
+  const [salt, storedHash] = hash.split(":");
+  const hashOfInput = crypto.pbkdf2Sync(
+    password,
+    Buffer.from(salt, "hex"),
+    100000,
+    64,
+    "sha256"
+  );
+  return hashOfInput.toString("hex") === storedHash;
 }
 
 /**
@@ -107,7 +88,7 @@ export async function registerUser(
   }
 
   // Hash password
-  const hashedPassword = await hashPassword(password);
+  const hashedPassword = hashPassword(password);
 
   // Create user
   const user = await prisma.user.create({
@@ -140,7 +121,7 @@ export async function loginUser(
   }
 
   // Verify password
-  if (!user.password || !(await verifyPassword(password, user.password))) {
+  if (!user.password || !verifyPassword(password, user.password)) {
     throw new Error("Invalid credentials");
   }
 

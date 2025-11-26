@@ -8,6 +8,7 @@ import { Router } from "express";
 import authRouter from "./auth.js";
 import testsRouter from "./tests.js";
 import mediaRouter from "./media.js";
+import attemptsRouter from "./attempts.js";
 
 const router = Router();
 
@@ -19,5 +20,8 @@ router.use(testsRouter);
 
 // Mount media routes
 router.use(mediaRouter);
+
+// Mount attempt/response/grading/reporting routes
+router.use(attemptsRouter);
 
 export default router;
