@@ -19,6 +19,8 @@ export interface AppConfig {
   JWT_EXPIRES_IN: string; // e.g. '1h', '7d'
   DATABASE_URL?: string;
   s3: S3Config;
+  ADMIN_EMAIL: string;
+  ADMIN_PASSWORD: string;
 }
 
 function required(name: string, val: string | undefined): string {
@@ -42,6 +44,10 @@ const S3_SECRET_ACCESS_KEY =
   process.env.S3_SECRET_ACCESS_KEY || "minioadmin";
 const S3_BUCKET = process.env.S3_BUCKET || "alz";
 
+// Admin User Configuration
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@example.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123456";
+
 const config: AppConfig = Object.freeze({
   NODE_ENV,
   PORT,
@@ -54,6 +60,8 @@ const config: AppConfig = Object.freeze({
     secretAccessKey: S3_SECRET_ACCESS_KEY,
     bucket: S3_BUCKET,
   },
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
 });
 
 export default config;
