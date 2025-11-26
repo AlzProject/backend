@@ -405,6 +405,33 @@ describe("Test Endpoints", () => {
       expect(response.body.testId).toBe(testId);
     });
 
+    it("should create section with config field", async () => {
+      const user = await createTestUser();
+      const token = await getAuthToken(user);
+
+      const createRes = await request(app)
+        .post("/v1/tests")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          title: "Test",
+        });
+
+      const testId = createRes.body.id;
+
+      const response = await request(app)
+        .post(`/v1/tests/${testId}/sections`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          title: "Section with Config",
+          orderIndex: 0,
+          config: { timeLimit: 60, allowSkip: true },
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.title).toBe("Section with Config");
+      expect(response.body.config).toEqual({ timeLimit: 60, allowSkip: true });
+    });
+
     it("should fail without authentication", async () => {
       const response = await request(app)
         .post("/v1/tests/1/sections")

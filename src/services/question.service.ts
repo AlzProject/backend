@@ -23,6 +23,7 @@ export async function createQuestion(
     maxScore?: number;
     negativeScore?: number;
     partialMarking?: boolean;
+    config?: Record<string, any> | null;
   }
 ) {
   // Verify section exists
@@ -43,6 +44,7 @@ export async function createQuestion(
       maxScore: data.maxScore || 1,
       negativeScore: data.negativeScore || 0,
       partialMarking: data.partialMarking ?? false,
+      config: data.config,
     },
   });
 
@@ -108,6 +110,7 @@ export async function updateQuestion(
     maxScore?: number;
     negativeScore?: number;
     partialMarking?: boolean;
+    config?: Record<string, any> | null;
   }
 ) {
   const question = await prisma.question.update({
@@ -119,6 +122,7 @@ export async function updateQuestion(
       ...(data.maxScore !== undefined && { maxScore: data.maxScore }),
       ...(data.negativeScore !== undefined && { negativeScore: data.negativeScore }),
       ...(data.partialMarking !== undefined && { partialMarking: data.partialMarking }),
+      ...(data.config !== undefined && { config: data.config }),
     },
   });
 
@@ -163,6 +167,7 @@ function formatQuestion(question: any) {
     maxScore: Number(question.maxScore),
     negativeScore: Number(question.negativeScore),
     partialMarking: question.partialMarking,
+    config: question.config,
     createdAt: question.createdAt,
   };
 }
@@ -180,6 +185,7 @@ function formatQuestionWithRelations(question: any) {
     maxScore: Number(question.maxScore),
     negativeScore: Number(question.negativeScore),
     partialMarking: question.partialMarking,
+    config: question.config,
     createdAt: question.createdAt,
     options: question.options.map((opt: any) => ({
       id: opt.id,
@@ -187,6 +193,7 @@ function formatQuestionWithRelations(question: any) {
       text: opt.text,
       isCorrect: opt.isCorrect,
       weight: Number(opt.weight),
+      config: opt.config,
     })),
     media: question.mediaLinks.map((link: any) => ({
       id: link.media.id,

@@ -300,6 +300,11 @@
             "type": "integer",
             "description": "Duration in seconds (nullable)"
           },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Section-specific configuration stored as JSONB"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -325,6 +330,11 @@
           "duration": {
             "type": "integer",
             "description": "Duration in seconds (nullable)"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Section-specific configuration stored as JSONB"
           }
         }
       },
@@ -358,6 +368,11 @@
           },
           "partialMarking": {
             "type": "boolean"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Question-specific configuration stored as JSONB"
           },
           "createdAt": {
             "type": "string",
@@ -394,6 +409,11 @@
           "partialMarking": {
             "type": "boolean",
             "default": false
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Question-specific configuration stored as JSONB"
           }
         }
       },
@@ -417,6 +437,11 @@
             "type": "number",
             "format": "float",
             "description": "Used for partial marking; default 0.0"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Option-specific configuration stored as JSONB"
           }
         }
       },
@@ -434,6 +459,11 @@
             "type": "number",
             "format": "float",
             "default": 0
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Option-specific configuration stored as JSONB"
           }
         }
       },
@@ -461,6 +491,25 @@
             "type": "string",
             "nullable": true,
             "description": "Version identifier for the media"
+          },
+          "presignedUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Presigned URL for uploading to S3 (only returned during upload)"
+          }
+        }
+      },
+      "MediaPresignedUrl": {
+        "type": "object",
+        "properties": {
+          "presignedUrl": {
+            "type": "string",
+            "description": "Presigned URL for downloading from S3 (valid for 5 minutes)"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 300,
+            "description": "Expiration time in seconds"
           }
         }
       },
@@ -661,6 +710,11 @@
           },
           "duration": {
             "type": "integer"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Section-specific configuration stored as JSONB"
           }
         }
       },
@@ -686,6 +740,11 @@
           },
           "partialMarking": {
             "type": "boolean"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Question-specific configuration stored as JSONB"
           }
         }
       },
@@ -701,6 +760,11 @@
           "weight": {
             "type": "number",
             "format": "float"
+          },
+          "config": {
+            "type": "object",
+            "nullable": true,
+            "description": "Option-specific configuration stored as JSONB"
           }
         }
       },
@@ -1671,22 +1735,18 @@
         "tags": [
           "Media"
         ],
-        "summary": "Upload media file",
+        "summary": "Get presigned URL for media upload",
+        "description": "Returns a presigned URL for the client to upload directly to S3 (valid for 5 minutes)",
         "requestBody": {
           "required": true,
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
                 "type": "object",
                 "required": [
-                  "file",
                   "type"
                 ],
                 "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  },
                   "type": {
                     "$ref": "#/components/schemas/MediaFileType"
                   },
@@ -1700,11 +1760,24 @@
         },
         "responses": {
           "201": {
-            "description": "Uploaded",
+            "description": "Presigned URL generated",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Media"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Media"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "presignedUrl": {
+                          "type": "string",
+                          "description": "URL to use for PUT request to upload file"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
@@ -1746,6 +1819,42 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedList"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/media/{mediaId}/download": {
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Get presigned URL for media download",
+        "description": "Returns a presigned URL for downloading media file (valid for 5 minutes)",
+        "parameters": [
+          {
+            "name": "mediaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presigned download URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaPresignedUrl"
                 }
               }
             }

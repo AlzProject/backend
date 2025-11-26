@@ -21,6 +21,7 @@ export async function createSection(
   data: {
     description?: string;
     duration?: number | null;
+    config?: Record<string, any> | null;
   }
 ) {
   // Verify test exists
@@ -39,6 +40,7 @@ export async function createSection(
       orderIndex,
       description: data.description,
       duration: data.duration,
+      config: data.config,
     },
   });
 
@@ -91,6 +93,7 @@ export async function updateSection(
     description?: string | null;
     orderIndex?: number;
     duration?: number | null;
+    config?: Record<string, any> | null;
   }
 ) {
   const section = await prisma.section.update({
@@ -100,6 +103,7 @@ export async function updateSection(
       ...(data.description !== undefined && { description: data.description }),
       ...(data.orderIndex !== undefined && { orderIndex: data.orderIndex }),
       ...(data.duration !== undefined && { duration: data.duration }),
+      ...(data.config !== undefined && { config: data.config }),
     },
   });
 
@@ -142,6 +146,7 @@ function formatSection(section: any) {
     description: section.description,
     orderIndex: section.orderIndex,
     duration: section.duration,
+    config: section.config,
     createdAt: section.createdAt,
   };
 }

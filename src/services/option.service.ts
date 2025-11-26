@@ -20,6 +20,7 @@ export async function createOption(
     text?: string | null;
     isCorrect?: boolean;
     weight?: number;
+    config?: Record<string, any> | null;
   }
 ) {
   // Verify question exists
@@ -37,6 +38,7 @@ export async function createOption(
       text: data.text,
       isCorrect: data.isCorrect ?? false,
       weight: data.weight ?? 0,
+      config: data.config,
     },
   });
 
@@ -97,6 +99,7 @@ export async function updateOption(
     text?: string | null;
     isCorrect?: boolean;
     weight?: number;
+    config?: Record<string, any> | null;
   }
 ) {
   const option = await prisma.option.update({
@@ -105,6 +108,7 @@ export async function updateOption(
       ...(data.text !== undefined && { text: data.text }),
       ...(data.isCorrect !== undefined && { isCorrect: data.isCorrect }),
       ...(data.weight !== undefined && { weight: data.weight }),
+      ...(data.config !== undefined && { config: data.config }),
     },
   });
 
@@ -146,6 +150,7 @@ function formatOption(option: any) {
     text: option.text,
     isCorrect: option.isCorrect,
     weight: Number(option.weight),
+    config: option.config,
   };
 }
 
@@ -159,6 +164,7 @@ function formatOptionWithRelations(option: any) {
     text: option.text,
     isCorrect: option.isCorrect,
     weight: Number(option.weight),
+    config: option.config,
     media: option.mediaLinks.map((link: any) => ({
       id: link.media.id,
       filename: link.media.filename,

@@ -52,6 +52,7 @@ export const createOption = asyncHandler(
         text: validatedData.text,
         isCorrect: validatedData.isCorrect,
         weight: validatedData.weight,
+        config: validatedData.config,
       });
 
       res.status(201).json(option);

@@ -93,6 +93,22 @@ describe("Section Endpoints", () => {
       expect(response.body.description).toBe("New description");
     });
 
+    it("should allow updating config field", async () => {
+      const user = await createTestUser();
+      const token = await getAuthToken(user);
+      const { sectionId } = await createTestWithSection(token);
+
+      const response = await request(app)
+        .patch(`/v1/sections/${sectionId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          config: { customField: "customValue", count: 42 },
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.config).toEqual({ customField: "customValue", count: 42 });
+    });
+
     it("should update orderIndex", async () => {
       const user = await createTestUser();
       const token = await getAuthToken(user);

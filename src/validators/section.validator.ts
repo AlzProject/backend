@@ -16,6 +16,7 @@ export const SectionCreateSchema = z.object({
   description: z.string().max(1000, "Description too long").optional(),
   orderIndex: z.number().int().nonnegative("Order index must be non-negative"),
   duration: z.number().int().positive("Duration must be positive").nullable().optional(),
+  config: z.any().nullable().optional(),
 });
 
 export type SectionCreateRequest = z.infer<typeof SectionCreateSchema>;
@@ -28,6 +29,7 @@ export const SectionUpdateSchema = z.object({
   description: z.string().max(1000, "Description too long").nullable().optional(),
   orderIndex: z.number().int().nonnegative("Order index must be non-negative").optional(),
   duration: z.number().int().positive("Duration must be positive").nullable().optional(),
+  config: z.any().nullable().optional(),
 });
 
 export type SectionUpdateRequest = z.infer<typeof SectionUpdateSchema>;

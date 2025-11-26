@@ -194,6 +194,7 @@ export const createSection = asyncHandler(
         {
           description: validatedData.description,
           duration: validatedData.duration,
+          config: validatedData.config,
         }
       );
 

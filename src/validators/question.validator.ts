@@ -18,6 +18,7 @@ export const QuestionCreateSchema = z.object({
   maxScore: z.number().positive("Max score must be positive").default(1),
   negativeScore: z.number().nonnegative("Negative score cannot be negative").default(0),
   partialMarking: z.boolean().default(false),
+  config: z.any().nullable().optional(),
 });
 
 export type QuestionCreateRequest = z.infer<typeof QuestionCreateSchema>;
@@ -32,6 +33,7 @@ export const QuestionUpdateSchema = z.object({
   maxScore: z.number().positive("Max score must be positive").optional(),
   negativeScore: z.number().nonnegative("Negative score cannot be negative").optional(),
   partialMarking: z.boolean().optional(),
+  config: z.any().nullable().optional(),
 });
 
 export type QuestionUpdateRequest = z.infer<typeof QuestionUpdateSchema>;

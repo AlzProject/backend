@@ -58,6 +58,7 @@ export const createQuestion = asyncHandler(
           maxScore: validatedData.maxScore,
           negativeScore: validatedData.negativeScore,
           partialMarking: validatedData.partialMarking,
+          config: validatedData.config,
         }
       );
 
