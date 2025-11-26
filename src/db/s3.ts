@@ -11,6 +11,7 @@ import {
   DeleteObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import config from "../config/config.js";
 
 /**
@@ -57,4 +58,38 @@ export function generateMediaKey(filename: string, mediaId: number): string {
  */
 export function generateMediaUrl(objectKey: string): string {
   return `${config.s3.endpoint}/${config.s3.bucket}/${objectKey}`;
+}
+
+/**
+ * Generate presigned URL for uploading to S3 (PUT)
+ * Valid for 5 minutes
+ */
+export async function generateUploadPresignedUrl(
+  objectKey: string,
+  contentType: string
+): Promise<string> {
+  const command = new PutObjectCommand({
+    Bucket: getBucketName(),
+    Key: objectKey,
+    ContentType: contentType,
+  });
+
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes
+  return url;
+}
+
+/**
+ * Generate presigned URL for downloading from S3 (GET)
+ * Valid for 5 minutes
+ */
+export async function generateDownloadPresignedUrl(
+  objectKey: string
+): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: getBucketName(),
+    Key: objectKey,
+  });
+
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes
+  return url;
 }

@@ -2,8 +2,9 @@
  * Media routes.
  *
  * Routes:
- * - POST /media - Upload media (protected)
+ * - POST /media - Upload media (protected) - returns presigned URL
  * - GET /media - List media (protected)
+ * - GET /media/:mediaId/download - Download media presigned URL (protected)
  * - DELETE /media/:mediaId - Delete media (protected)
  * - POST /questions/:questionId/media/:mediaId - Attach to question (protected)
  * - DELETE /questions/:questionId/media/:mediaId - Detach from question (protected)
@@ -14,13 +15,13 @@
 import { Router } from "express";
 import * as mediaController from "../controllers/media.controller.js";
 import { authenticate } from "../middlewares/auth.js";
-import { multipart } from "../middlewares/multipart.js";
 
 export const mediaRouter = Router();
 
 // Protected media routes
-mediaRouter.post("/media", authenticate, multipart("file"), mediaController.uploadMedia);
+mediaRouter.post("/media", authenticate, mediaController.uploadMedia);
 mediaRouter.get("/media", authenticate, mediaController.listMedia);
+mediaRouter.get("/media/:mediaId/download", authenticate, mediaController.downloadMedia);
 mediaRouter.delete("/media/:mediaId", authenticate, mediaController.deleteMedia);
 
 // Media attachment routes

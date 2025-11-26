@@ -17,6 +17,8 @@ import {
   generateMediaKey,
   generateMediaUrl,
   getBucketName,
+  generateUploadPresignedUrl,
+  generateDownloadPresignedUrl,
 } from "../db/s3.js";
 import type { MEDIA_FILE } from "@prisma/client";
 
@@ -32,15 +34,15 @@ export function disableMockS3() {
 }
 
 /**
- * Upload media file to S3
+ * Upload media file to S3 - returns presigned URL for client to use
+ * Client uploads directly to S3 using the presigned URL
  */
 export async function uploadMedia(
   filename: string,
-  fileBuffer: Buffer,
   fileType: MEDIA_FILE,
   label?: string
 ): Promise<any> {
-  // Create media record
+  // Create media record in database
   const media = await prisma.media.create({
     data: {
       filename,
@@ -52,36 +54,52 @@ export async function uploadMedia(
   try {
     // Generate S3 key
     const objectKey = generateMediaKey(filename, media.id);
+    const contentType = getContentType(fileType);
 
-    // Upload to S3 (skip if mocked)
-    if (!mockS3Enabled) {
-      const command = new PutObjectCommand({
-        Bucket: getBucketName(),
-        Key: objectKey,
-        Body: fileBuffer,
-        ContentType: getContentType(fileType),
-      });
+    // Generate presigned URL for upload (5 minutes)
+    const presignedUrl = await generateUploadPresignedUrl(objectKey, contentType);
 
-      await s3Client.send(command);
-    }
-
-    // Update media record with URL and version
+    // Update media record with version (key) but not URL yet
+    // The URL will be set once the client uploads via presigned URL
     const updatedMedia = await prisma.media.update({
       where: { id: media.id },
       data: {
-        url: generateMediaUrl(objectKey),
         version: objectKey,
       },
     });
 
-    return updatedMedia;
+    return {
+      ...updatedMedia,
+      presignedUrl, // Return presigned URL for client to upload
+    };
   } catch (error) {
-    // Delete media record if S3 upload fails
+    // Delete media record if presigned URL generation fails
     await prisma.media.delete({
       where: { id: media.id },
     });
     throw error;
   }
+}
+
+/**
+ * Get download presigned URL for a media file
+ */
+export async function getDownloadPresignedUrl(mediaId: number): Promise<string> {
+  const media = await prisma.media.findUnique({
+    where: { id: mediaId },
+  });
+
+  if (!media) {
+    throw new Error("Media not found");
+  }
+
+  if (!media.version) {
+    throw new Error("Media file not yet uploaded");
+  }
+
+  // Generate presigned URL for download (5 minutes)
+  const presignedUrl = await generateDownloadPresignedUrl(media.version);
+  return presignedUrl;
 }
 
 /**
@@ -261,9 +279,36 @@ function getContentType(fileType: MEDIA_FILE): string {
 }
 
 /**
- * Format media response
+ * Confirm media file upload - called after client uploads via presigned URL
+ * Sets the final URL for the media file
  */
-export function formatMediaResponse(media: any): any {
+export async function confirmMediaUpload(mediaId: number): Promise<any> {
+  const media = await prisma.media.findUnique({
+    where: { id: mediaId },
+  });
+
+  if (!media) {
+    throw new Error("Media not found");
+  }
+
+  if (!media.version) {
+    throw new Error("Media file key not found");
+  }
+
+  // Generate final URL
+  const url = generateMediaUrl(media.version);
+
+  // Update media record with URL
+  const updatedMedia = await prisma.media.update({
+    where: { id: mediaId },
+    data: {
+      url,
+    },
+  });
+
+  return formatMediaResponse(updatedMedia);
+}
+export function formatMediaResponse(media: any, presignedUrl?: string): any {
   return {
     id: media.id,
     filename: media.filename,
@@ -271,5 +316,6 @@ export function formatMediaResponse(media: any): any {
     type: media.type,
     url: media.url,
     version: media.version,
+    ...(presignedUrl && { presignedUrl }),
   };
 }

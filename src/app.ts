@@ -12,11 +12,11 @@ export const createApp = () => {
   const app = express();
 
   // CORS middleware
+  app.use(cors());
 
   // Middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
 
   // Health check endpoint (no auth required)
   app.get("/health", (req, res) => {

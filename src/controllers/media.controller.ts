@@ -24,6 +24,8 @@ import { MediaUploadSchema, MediaListSchema } from "../validators/media.validato
 /**
  * Upload media file
  * POST /media
+ *
+ * Returns presigned URL for client to upload directly to S3
  */
 export const uploadMedia = asyncHandler(
   async (req: Request, res: Response) => {
@@ -39,23 +41,20 @@ export const uploadMedia = asyncHandler(
       throw err;
     }
 
-    // Check for file in request
-    if (!req.file) {
-      throw new ValidationError("No file uploaded");
-    }
-
     try {
-      const media = await mediaService.uploadMedia(
-        req.file.originalname,
-        req.file.buffer,
+      const mediaData = await mediaService.uploadMedia(
+        req.file?.originalname || `media_${Date.now()}`,
         validatedData.type,
         validatedData.label
       );
 
-      res.status(201).json(mediaService.formatMediaResponse(media));
+      // Return presigned URL for client to use
+      res.status(201).json({
+        ...mediaService.formatMediaResponse(mediaData, mediaData.presignedUrl),
+      });
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to upload media";
+        err instanceof Error ? err.message : "Failed to generate presigned URL";
       throw new ValidationError(errorMessage);
     }
   }
@@ -85,7 +84,7 @@ export const listMedia = asyncHandler(
     );
 
     res.status(200).json({
-      items: result.items.map(mediaService.formatMediaResponse),
+      items: result.items.map((m: any) => mediaService.formatMediaResponse(m)),
       total: result.total,
       limit: result.limit,
       offset: result.offset,
@@ -108,6 +107,33 @@ export const deleteMedia = asyncHandler(
     try {
       await mediaService.deleteMedia(mediaId);
       res.status(204).send();
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("not found")) {
+        throw new NotFoundError("Media");
+      }
+      throw err;
+    }
+  }
+);
+
+/**
+ * Download media - get presigned URL
+ * GET /media/:mediaId/download
+ */
+export const downloadMedia = asyncHandler(
+  async (req: Request, res: Response) => {
+    const mediaId = parseInt(req.params.mediaId);
+
+    if (isNaN(mediaId)) {
+      throw new ValidationError("Invalid media ID");
+    }
+
+    try {
+      const presignedUrl = await mediaService.getDownloadPresignedUrl(mediaId);
+      res.status(200).json({
+        presignedUrl,
+        expiresIn: 300, // 5 minutes
+      });
     } catch (err) {
       if (err instanceof Error && err.message.includes("not found")) {
         throw new NotFoundError("Media");
